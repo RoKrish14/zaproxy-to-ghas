@@ -18,12 +18,6 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
           severity = 'info';
         }
 
-        const rule: Rule = {
-          DefaultConfiguration: {
-            Level: severity
-          }
-        };
-
         return {
           id: alert.alertRef.toString(),
           shortDescription: { text: alert.name },
@@ -31,10 +25,7 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
             text: alert.desc.replace(/<p>/g, '').replace(/<\/p>/g, '')
           },
           helpUri: `https://www.zaproxy.org/docs/alerts/${alert.alertRef}`,
-          defaultConfiguration: {
-            level: severity,
-          },
-          severity: severity(rule),
+          defaultConfiguration: { level: severity },
           properties: {
             tags: [`external/cwe/cwe-${alert.cweid}`]
           }

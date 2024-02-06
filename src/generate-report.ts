@@ -8,45 +8,47 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
   const rules = object.site.reduce(
     (acc: reportTypes.rule[], cur: reportTypes.zapObjectSite) => {
       const alerts = cur.alerts.map((alert: reportTypes.zapObjectAlert) => {
-        let severity = 'Medium'
-        if (alert.riskdesc.includes('High ')) severity = 'High'
-        if (alert.riskdesc.includes('Medium ')) severity = 'Medium'
-        if (alert.riskdesc.includes('Informational ')) severity = 'note'
+        let severity = 'Medium';
+        if (alert.riskdesc.includes('High ')) severity = 'High';
+        if (alert.riskdesc.includes('Medium ')) severity = 'Medium';
+        if (alert.riskdesc.includes('Informational ')) severity = 'note';
 
         return {
           id: alert.alertRef.toString(),
-          shortDescription: {text: alert.name},
+          shortDescription: { text: alert.name },
           fullDescription: {
             text: alert.desc.replace(/<p>/g, '').replace(/<\/p>/g, '')
           },
           helpUri: `https://www.zaproxy.org/docs/alerts/${alert.alertRef}`,
-          defaultConfiguration: {level: severity},
+          defaultConfiguration: { level: severity },
           properties: {
             tags: [`external/cwe/cwe-${alert.cweid}`]
           }
-        }
-      })
-      for (const [index] of alerts.entries()) {
-        if (!acc.some(r => r.id.toString() === alerts[index].id.toString())) {
-          acc.push(alerts[index])
-        }
-      }
-      return acc
+        };
+      });
+
+      // Use Set to ensure unique rules based on 'id'
+      const uniqueAlerts = Array.from(new Set(alerts.map((a) => a.id))).map(
+        (id) => alerts.find((a) => a.id === id)!
+      );
+
+      acc.push(...uniqueAlerts);
+      return acc;
     },
     []
-  )
+  );
 
-  const results = object.site.reduce((acc: reportTypes.result[], site) => {
-    // eslint-disable-next-line github/array-foreach
-    site.alerts.forEach(cur => {
-      const alert = {
-        ruleId: cur.alertRef.toString(),
-        message: {
-          text: `<strong>${cur.name}</strong> <br/><br/>
+  const results = object.site.reduce(
+    (acc: reportTypes.result[], site) => {
+      site.alerts.forEach((cur) => {
+        const alert = {
+          ruleId: cur.alertRef.toString(),
+          message: {
+            text: `<strong>${cur.name}</strong> <br/><br/>
                 ${
                   cur.instances &&
                   cur.instances
-                    .map(instance => {
+                    .map((instance) => {
                       return Object.keys(instance)
                         .map(
                           (key: string) =>
@@ -54,45 +56,46 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
                               .replace(/</g, '&lt;')
                               .replace(/>/g, '&gt;')}`
                         )
-                        .join('<br/>')
+                        .join('<br/>');
                     })
                     .join(result_seperator)
                 }
-                `
-        },
-        locations:
-          cur.instances &&
-          cur.instances.map(instance => {
-            return {
-              physicalLocation: {
-                artifactLocation: {
-                  uri: instance.uri
-                    .replace(/(^\w+:|^)\/\//, '')
-                    .replace(/\/$/, '')
-                    .replace(/:\d+/, '')
+                `,
+          },
+          locations:
+            cur.instances &&
+            cur.instances.map((instance) => {
+              return {
+                physicalLocation: {
+                  artifactLocation: {
+                    uri: instance.uri
+                      .replace(/(^\w+:|^)\/\//, '')
+                      .replace(/\/$/, '')
+                      .replace(/:\d+/, '')
+                  },
+                  region: {
+                    startLine: 1
+                  }
                 },
-                region: {
-                  startLine: 1
-                }
-              },
-              logicalLocations: [
-                {
-                  name: instance.uri,
-                  kind: instance.method,
-                  fullyQualifiedName: instance.evidence
-                }
-              ]
-            }
-          })
-      }
-      acc.push(alert)
-    })
-    return acc
-  }, [])
+                logicalLocations: [
+                  {
+                    name: instance.uri,
+                    kind: instance.method,
+                    fullyQualifiedName: instance.evidence
+                  }
+                ]
+              };
+            })
+        };
+        acc.push(alert);
+      });
+      return acc;
+    },
+    []
+  );
 
   return {
-    $schema:
-      'https://json.schemastore.org/sarif-2.1.0.json',
+    $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
     version: '2.1.0',
     runs: [
       {
@@ -106,8 +109,9 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
         results
       }
     ]
-  }
-}
+  };
+};
+
 
 function generateReport(): string {
   const data = fs.readFileSync('./report_json.json', {

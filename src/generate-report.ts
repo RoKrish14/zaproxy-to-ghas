@@ -8,10 +8,21 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
   const rules = object.site.reduce(
     (acc: reportTypes.rule[], cur: reportTypes.zapObjectSite) => {
       const alerts = cur.alerts.map((alert: reportTypes.zapObjectAlert) => {
-        let severity = 'Medium';
-        if (alert.riskdesc.includes('High ')) severity = 'High';
-        if (alert.riskdesc.includes('Medium ')) severity = 'Medium';
-        if (alert.riskdesc.includes('Informational ')) severity = 'note';
+        let severity = 'medium';
+
+        if (alert.riskdesc.includes('High ')) {
+          severity = 'critical';
+        } else if (alert.riskdesc.includes('Medium ')) {
+          severity = 'medium';
+        } else if (alert.riskdesc.includes('Informational ')) {
+          severity = 'info';
+        }
+
+        const rule: Rule = {
+          DefaultConfiguration: {
+            Level: severity
+          }
+        };
 
         return {
           id: alert.alertRef.toString(),
@@ -20,7 +31,10 @@ const parse = (object: reportTypes.zapObject): reportTypes.report => {
             text: alert.desc.replace(/<p>/g, '').replace(/<\/p>/g, '')
           },
           helpUri: `https://www.zaproxy.org/docs/alerts/${alert.alertRef}`,
-          defaultConfiguration: { level: severity },
+          defaultConfiguration: {
+            level: severity,
+          },
+          severity: severity(rule),
           properties: {
             tags: [`external/cwe/cwe-${alert.cweid}`]
           }

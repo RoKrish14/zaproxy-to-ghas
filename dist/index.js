@@ -20,7 +20,7 @@ const parse = (object) => {
             if (alert.riskdesc.includes('High '))
                 severity = 'High';
             if (alert.riskdesc.includes('Medium '))
-                severity = 'warning';
+                severity = 'Medium';
             if (alert.riskdesc.includes('Informational '))
                 severity = 'note';
             return {

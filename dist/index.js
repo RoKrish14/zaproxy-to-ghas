@@ -16,13 +16,13 @@ const result_seperator = '<br/><br/> ------- <br/><br/>';
 const parse = (object) => {
     const rules = object.site.reduce((acc, cur) => {
         const alerts = cur.alerts.map((alert) => {
-            let severity = 'warning';
-            if (alert.riskdesc.includes('High '))
-                severity = 'error';
-            if (alert.riskdesc.includes('Medium '))
-                severity = 'warning';
-            if (alert.riskdesc.includes('Informational '))
-                severity = 'note';
+            let severity = 'Medium';
+            if (alert.riskdesc.includes('error '))
+                severity = 'High';
+            if (alert.riskdesc.includes('warning '))
+                severity = 'Medium';
+            if (alert.riskdesc.includes('note '))
+                severity = 'info';
             return {
                 id: alert.alertRef.toString(),
                 shortDescription: { text: alert.name },
@@ -2200,18 +2200,18 @@ exports.debug = debug;
  * @param properties optional properties to add to the annotation.
  */
 function error(message, properties = {}) {
-    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_1.issueCommand('High', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-exports.error = error;
+exports.error = High;
 /**
  * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
  * @param properties optional properties to add to the annotation.
  */
 function warning(message, properties = {}) {
-    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_1.issueCommand('Medium', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-exports.warning = warning;
+exports.warning = Medium;
 /**
  * Adds a notice issue
  * @param message notice issue message. Errors will be converted to string via toString()

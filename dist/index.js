@@ -2202,7 +2202,7 @@ exports.debug = debug;
 function error(message, properties = {}) {
     command_1.issueCommand('High', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-exports.error = High;
+exports.error = error;
 /**
  * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
@@ -2211,7 +2211,7 @@ exports.error = High;
 function warning(message, properties = {}) {
     command_1.issueCommand('Medium', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-exports.warning = Medium;
+exports.warning = warning;
 /**
  * Adds a notice issue
  * @param message notice issue message. Errors will be converted to string via toString()
